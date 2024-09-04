@@ -12,6 +12,7 @@ export class HumidityComponent implements OnInit, OnDestroy {
   chartLabels: string[] = [];
   private humiditySubscription!: Subscription;
   private chart!: Chart<'line', number[]>;
+  private lastHumidity: number | null = null; // Guardar el último valor de humedad
 
   constructor(private sensorDataService: SensorDataService) {
     Chart.register(...registerables); // Registrar los componentes necesarios de Chart.js
@@ -49,16 +50,20 @@ export class HumidityComponent implements OnInit, OnDestroy {
   }
 
   startHumidityUpdates(): void {
-    this.humiditySubscription = interval(3000) // Actualiza cada 5 segundos
+    this.humiditySubscription = interval(3000) // Actualiza cada 3 segundos
       .subscribe(() => this.fetchHumidityData());
   }
 
   fetchHumidityData(): void {
     this.sensorDataService.getHumidity().subscribe(data => {
-      this.humidityData.push(data.humidity);
-      this.chartLabels.push(new Date().toLocaleTimeString());
-      this.updateChartData();
-      console.log("hola", data.humidity);
+      // Solo actualiza si el nuevo valor de humedad es diferente del último
+      if (this.lastHumidity === null || data.humidity !== this.lastHumidity) {
+        this.lastHumidity = data.humidity;
+        this.humidityData.push(data.humidity);
+        this.chartLabels.push(new Date().toLocaleTimeString());
+        this.updateChartData();
+        console.log("Humedad actualizada:", data.humidity);
+      }
     });
   }
 

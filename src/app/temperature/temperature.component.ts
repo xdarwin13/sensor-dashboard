@@ -12,6 +12,7 @@ export class TemperatureComponent implements OnInit, OnDestroy {
   chartLabels: string[] = [];
   private temperatureSubscription!: Subscription;
   private chart!: Chart<'line', number[]>;
+  private lastTemperature: number | null = null; // Guardar el último valor de temperatura
 
   constructor(private sensorDataService: SensorDataService) {
     Chart.register(...registerables); // Registrar los componentes necesarios de Chart.js
@@ -49,16 +50,20 @@ export class TemperatureComponent implements OnInit, OnDestroy {
   }
 
   startTemperatureUpdates(): void {
-    this.temperatureSubscription = interval(3000) // Actualiza cada 5 segundos
+    this.temperatureSubscription = interval(3000) // Actualiza cada 3 segundos
       .subscribe(() => this.fetchTemperatureData());
   }
 
   fetchTemperatureData(): void {
     this.sensorDataService.getTemperature().subscribe(data => {
-      this.temperatureData.push(data.temperature);
-      this.chartLabels.push(new Date().toLocaleTimeString());
-      this.updateChartData();
-      console.log("hola", data.temperature);
+      // Solo actualiza si el nuevo valor de temperatura es diferente del último
+      if (this.lastTemperature === null || data.temperature !== this.lastTemperature) {
+        this.lastTemperature = data.temperature;
+        this.temperatureData.push(data.temperature);
+        this.chartLabels.push(new Date().toLocaleTimeString());
+        this.updateChartData();
+        console.log("Temperatura actualizada:", data.temperature);
+      }
     });
   }
 
