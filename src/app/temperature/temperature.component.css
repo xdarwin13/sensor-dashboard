@@ -1,0 +1,21 @@
+.custom-toast {
+    background-color: #ffcc00 !important; /* Color de fondo amarillo brillante */
+    color: #333 !important; /* Color de texto */
+    font-weight: bold; /* Texto en negrita */
+    border-radius: 8px !important; /* Bordes redondeados */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra alrededor de la notificación */
+    animation: slide-in 0.5s ease-out; /* Animación de entrada */
+  }
+  
+  /* Animación personalizada */
+  @keyframes slide-in {
+    0% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
