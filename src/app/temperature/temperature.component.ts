@@ -2,20 +2,25 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { SensorDataService } from '../services/sensor-data.service';
 import { interval, Subscription } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
+import { MessageService } from 'primeng/api'; // Importar el servicio de mensajes
 
 @Component({
   selector: 'app-temperature',
-  templateUrl: './temperature.component.html'
+  templateUrl: './temperature.component.html',
+  providers: [MessageService] // Agregar MessageService como proveedor
 })
 export class TemperatureComponent implements OnInit, OnDestroy {
   temperatureData: number[] = [];
   chartLabels: string[] = [];
   private temperatureSubscription!: Subscription;
   private chart!: Chart<'line', number[]>;
-  private lastTemperature: number | null = null; // Guardar el último valor de temperatura
+  private lastTemperature: number | null = null;
 
-  constructor(private sensorDataService: SensorDataService) {
-    Chart.register(...registerables); // Registrar los componentes necesarios de Chart.js
+  constructor(
+    private sensorDataService: SensorDataService,
+    private messageService: MessageService // Inyectar MessageService
+  ) {
+    Chart.register(...registerables);
   }
 
   ngOnInit(): void {
@@ -50,27 +55,40 @@ export class TemperatureComponent implements OnInit, OnDestroy {
   }
 
   startTemperatureUpdates(): void {
-    this.temperatureSubscription = interval(3000) // Actualiza cada 3 segundos
+    this.temperatureSubscription = interval(3000)
       .subscribe(() => this.fetchTemperatureData());
   }
 
   fetchTemperatureData(): void {
     this.sensorDataService.getTemperature().subscribe(data => {
-      // Solo actualiza si el nuevo valor de temperatura es diferente del último
       if (this.lastTemperature === null || data.temperature !== this.lastTemperature) {
         this.lastTemperature = data.temperature;
         this.temperatureData.push(data.temperature);
         this.chartLabels.push(new Date().toLocaleTimeString());
         this.updateChartData();
         console.log("Temperatura actualizada:", data.temperature);
+
+        // Verificar si la temperatura alcanza los 50 grados para enviar una notificación de riesgo
+        
       }
+      if (data.temperature >= 50) {
+        this.sendRiskNotification();
+      }
+    });
+  }
+
+  sendRiskNotification(): void {
+    this.messageService.add({
+      severity: 'warn', // Nivel de severidad de la notificación
+      summary: 'Advertencia de Temperatura',
+      detail: '¡La temperatura ha alcanzado los 50 grados o más!'
     });
   }
 
   updateChartData(): void {
     this.chart.data.labels = this.chartLabels;
     this.chart.data.datasets[0].data = this.temperatureData;
-    this.chart.update(); // Actualiza el gráfico con los nuevos datos
+    this.chart.update();
   }
 
   ngOnDestroy(): void {
