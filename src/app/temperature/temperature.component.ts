@@ -82,7 +82,7 @@ export class TemperatureComponent implements OnInit, OnDestroy {
       key: 'customToast', // Clave para usar la plantilla personalizada
       summary: '⚠️ Advertencia de Temperatura',
       detail: '¡La temperatura ha alcanzado los 50 grados o más!',
-      life: 5000, // Duración de la notificación en milisegundos
+      life: 3000, // Duración de la notificación en milisegundos
       styleClass: 'custom-toast', // Clase de estilo personalizada
     });
   }
